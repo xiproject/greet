@@ -1,25 +1,31 @@
 var xal = require('../../xal-javascript');
 var _ = require('underscore');
 
-var toleranceMinutes = 1;
-var lastSeen = new Date(new Date() - toleranceMinutes * 60 * 1000);
+var toleranceMinutes = 0.1;
+var lastSeen = 0;
+var lastPresenceValue = false;
+
 xal.on('xi.event.inform.user.presence', function(state,next){
-    var value = _.reduce(state.get('xi.inform.user.presence'), function(memo, dest) {
+    var value = _.reduce(state.get('xi.event.inform.user.presence'), function(memo, dest) {
         return memo || dest.value ;
     },false);
-    if(value){
+
+    if(!lastPresenceValue && value){
+        xal.log.info('this is true');
         var currentTime = new Date();
-        if(Math.abs(currentTime - lastSeen) > toleranceMinutes * 1000 * 60){
+        // TODO: Figure out if this is necessary
+        if(true || Math.abs(currentTime - lastSeen) > toleranceMinutes * 1000 * 60){
             xal.createEvent('xi.event.output.text', function(state, done){
-                state.put('xi.event.output.text', 'Hello Mihir');
+                state.put('xi.event.output.text', 'Hello, human.');
                 done(state);
             });
         }
         lastSeen = currentTime;
     }
+
+    lastPresenceValue = value;
+
 });
-
-
 
 
 xal.start({name: 'Greet'}, function(){
